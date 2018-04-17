@@ -25,8 +25,8 @@ def adc_init(MOSI, MISO, SCLK):
     adc = SPI_ADC.ADC0832()
     # update pins to accomodate wiring
     adc.clkPin = SCLK
-    adc.doPin  = MOSI
-    adc.diPin  = MISO
+    adc.doPin  = MISO
+    adc.diPin  = MOSI
     # due to library "bug", SCLK must be reconfigured
     GPIO.setup(adc.clkPin, GPIO.OUT, initial=GPIO.HIGH)
 
