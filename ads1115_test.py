@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # Create ADC Object
     adc = ADC_lib.ADS1115()
     # Start ADC
-    adc.start(CHANNEL, gain=GAIN)
+    adc.start_adc(CHANNEL, gain=GAIN)
     while True:
         try:
             time.sleep(0.1)
