@@ -19,7 +19,7 @@ import time
 
 if __name__ == "__main__":
     # ADC Gain (see values above) and Channel (A0, A1, A2 -- see wiring)
-    GAIN = 1
+    GAIN = 2
     CHANNEL = 0 
     # Create ADC Object
     adc = ADC_lib.ADS1115()
