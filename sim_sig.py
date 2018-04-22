@@ -39,7 +39,7 @@ amp = 1
 carrier = amp*np.cos(2*np.pi * m * t)
 
 amp_noise = 0.1
-noise = np.random.randn(len(carrier)+1)*amp_noise
+noise = np.random.randn(len(carrier))*amp_noise
 # add Gaussian white noise to carrier signal
 carrier = np.add(carrier, noise)
 '''
