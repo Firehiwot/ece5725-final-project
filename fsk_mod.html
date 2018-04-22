@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ECE 5727 Modulator</title>
+  </head>
+  <body>
+    <label for="bits">Bits to send:</label>
+    <input type="text" id="bits">
+    <button id="play-sound">Play Sound</button>
+
+    <script>
+      document.getElementById("play-sound").addEventListener("click", function(e) {
+        e.preventDefault();
+
+        // Get the bits
+        var bits = document.getElementById("bits").value.trim().split('');
+        modulate(bits);
+      }, false);
+
+      var audioContext = new AudioContext();
+
+      /**
+       * Modulate bits into frequencies.
+       */
+      function modulate(bits) {
+        // Define modulation parameters
+        var Fs = audioContext.sampleRate;
+        var Fc = 250;
+        var Fmod = 50;
+        var bitRate = 20;
+        var sampPerBit = Math.floor(Fs / bitRate);
+        var numBits = 32;
+
+        // Convert the bits into an array of frequencies
+        var freqs = [];
+        for (var i = 0; i < bits.length; i++) {
+          if (bits[i] == "0") {
+            for (var j = 0; j < sampPerBit; j++) {
+              freqs.push(Fc - Fmod);
+            }
+          }
+          else {
+            for (var j = 0; j < sampPerBit; j++) {
+              freqs.push(Fc + Fmod);
+            }
+          }
+        }
+
+        // Create an audio buffer
+        var duration = freqs.length;
+        var numChannels = 1;
+        var buffer = audioContext.createBuffer(numChannels, duration, Fs);
+
+        // Fill the channel with the desired frequency data
+        var channelData = buffer.getChannelData(0);
+        for (var i = 0; i < duration; i++) {
+          channelData[i] = Math.sin(2*Math.PI*freqs[i]*i/Fs);
+        }
+
+        // Create audio source node
+        var source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+
+        // Play the sound
+        source.start();
+      }
+    </script>
+  </body>
+</html>
