@@ -9,10 +9,10 @@ import matplotlib.pyplot as pyplot
 
 Fs   = 860.0  # sampling frequency 
 Fc   = 250.0  # carrier frequency
-Fdev = 50.0   # deviation from carrier frequency for FSK 
-bitrate = 20.0  # bits/sec
+Fdev = 100.0   # deviation from carrier frequency for FSK 
+bitrate = 1.0  # bits/sec
 samp_per_bit = int(Fs/bitrate)  # duration of one representation 
-numbits = 32
+numbits = 128
 duration = samp_per_bit * numbits  # duration of whole signal in samples
 
 
@@ -37,7 +37,6 @@ print len(m), len(t)
 
 amp = 1
 carrier = amp*np.cos(2*np.pi * m * t)
-
 amp_noise = 0.1
 noise = np.random.randn(len(carrier))*amp_noise
 # add Gaussian white noise to carrier signal
