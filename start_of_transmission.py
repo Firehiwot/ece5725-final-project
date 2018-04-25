@@ -15,7 +15,11 @@ adc.start_adc(CHANNEL, gain=GAIN, data_rate=860)
 
 samps = [0] * samp_per_bit
 
-last_fft = 1000000000
+last_fft150 = last_fft350 = 1000000000
+
+HIGH_FREQ = 400
+LOW_FREQ  = 300
+BAND = 25
 
 while True:
     try:
@@ -35,10 +39,15 @@ while True:
         #plot.plot(np.log(np.abs(fft)))
         #plot.show()
 
-        print np.abs(fft[300])
-        new_fft = np.abs(fft[300])
-        if new_fft / last_fft > 5:
+        low_band = np.mean( np.abs(fft[LOW_FREQ-BAND : LOW_FREQ+BAND]) )
+        high_band = np.mean( np.abs(fft[HIGH_FREQ-BAND : HIGH_FREQ+BAND]) )
+
+
+        print "high: " + str(np.abs(fft[HIGH_FREQ])) + " high band: " + str(high_band)
+
+        if np.abs(fft[HIGH_FREQ]) > 2*high_band:
             print "Detected"
-        last_fft = new_fft
+        #last_fft150 = new_fft150
+        #last_fft350 = new_fft350
     except KeyboardInterrupt:
         adc.stop_adc()
