@@ -20,6 +20,7 @@ last_fft150 = last_fft350 = 1000000000
 HIGH_FREQ = 400
 LOW_FREQ  = 300
 BAND = 25
+peak_height = 1.7
 
 while True:
     try:
@@ -42,10 +43,12 @@ while True:
         low_band = np.mean( np.abs(fft[LOW_FREQ-BAND : LOW_FREQ+BAND]) )
         high_band = np.mean( np.abs(fft[HIGH_FREQ-BAND : HIGH_FREQ+BAND]) )
 
-
+    
         print "high: " + str(np.abs(fft[HIGH_FREQ])) + " high band: " + str(high_band)
 
-        if np.abs(fft[HIGH_FREQ]) > 2*high_band:
+        print "low: " + str(np.abs(fft[LOW_FREQ])) + " low band: " + str(low_band)
+
+        if np.abs(fft[HIGH_FREQ]) > peak_height*high_band and np.abs(fft[LOW_FREQ]) > peak_height*low_band:
             print "Detected"
         #last_fft150 = new_fft150
         #last_fft350 = new_fft350
