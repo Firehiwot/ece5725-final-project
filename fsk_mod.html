@@ -5,9 +5,11 @@
     <title>ECE 5727 Modulator</title>
   </head>
   <body>
-    <label for="bits">Bits to send:</label>
-    <input type="text" id="bits">
-    <button id="play-sound">Play Sound</button>
+    <p>
+      <label for="bits">Bits to send:</label>
+      <input type="text" id="bits">
+      <button id="play-sound">Play Sound</button>
+    </p>
 
     <script>
       document.getElementById("play-sound").addEventListener("click", function(e) {
@@ -27,10 +29,9 @@
         // Define modulation parameters
         var Fs = audioContext.sampleRate;
         var Fc = 250;
-        var Fmod = 50;
-        var bitRate = 20;
+        var Fmod = 100;
+        var bitRate = 1;
         var sampPerBit = Math.floor(Fs / bitRate);
-        var numBits = 32;
 
         // Convert the bits into an array of frequencies
         var freqs = [];
@@ -49,12 +50,17 @@
 
         // Create an audio buffer
         var duration = freqs.length;
+        var startLen = 2*sampPerBit;
         var numChannels = 1;
-        var buffer = audioContext.createBuffer(numChannels, duration, Fs);
+        var buffer = audioContext.createBuffer(numChannels, duration+startLen, Fs);
 
         // Fill the channel with the desired frequency data
         var channelData = buffer.getChannelData(0);
-        for (var i = 0; i < duration; i++) {
+        for (var i = 0; i < startLen; i++) {
+          channelData[i] = Math.sin(2*Math.PI*(Fc-Fmod)*i/Fs);
+          channelData[i] += Math.sin(2*Math.PI*(Fc+Fmod)*i/Fs);
+        }
+        for (var i = startLen; i < duration + startLen; i++) {
           channelData[i] = Math.sin(2*Math.PI*freqs[i]*i/Fs);
         }
 
