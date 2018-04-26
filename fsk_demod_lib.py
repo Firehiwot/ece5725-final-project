@@ -6,6 +6,7 @@ Demodulates signal using FSK
 import scipy.signal.signaltools as sigtool
 import scipy.signal as signal 
 import numpy as np
+import matplotlib.pyplot as pyplot
 
 def demod(carrier, Fs, bitrate):
     """
@@ -22,6 +23,10 @@ def demod(carrier, Fs, bitrate):
 
     # filter our signal 
     carrier_filtered = signal.lfilter( lpf, 1.0, carrier_env)
+
+    pyplot.plot(carrier)
+    pyplot.plot(carrier_filtered)
+    pyplot.show()
 
     # slicing
     mean = np.mean(carrier_filtered)
