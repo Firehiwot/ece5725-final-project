@@ -26,7 +26,7 @@ PEAK_HEIGHT = 1.4
 
 PREFIX_LEN = 3
 DATA_LEN = 4
-TRANSMISSION_LENGTH = (PREFIX_LEN + DATA_LEN) * SAMP_PER_BIT
+TRANSMISSION_LENGTH = (PREFIX_LEN + DATA_LEN + 1) * SAMP_PER_BIT
 
 # Keep a buffer of samples
 start_buffer = [0] * SAMP_PER_BIT
@@ -55,9 +55,8 @@ def start_recording():
     """
     Buffer an entire transmission after the start of transmission is detected.
     """
-    detected_buffer[0:SAMP_PER_BIT] = start_buffer
-    for samp in range(PREFIX_LEN + DATA_LEN - 1):
-        sample_slot(detected_buffer, (samp+1)*SAMP_PER_BIT)
+    for samp in range(PREFIX_LEN + DATA_LEN):
+        sample_slot(detected_buffer, (samp)*SAMP_PER_BIT)
 
 def parse_recording():
     """
@@ -91,10 +90,9 @@ def parse_recording():
 
     # Check if the end of the prefix could be determined
     if missing_peaks == 3:
-        window_start -= int(SAMP_PER_BIT/10)
+        window_start += SAMP_PER_BIT - int(SAMP_PER_BIT/10)
         print "Found start at {}".format(window_start)
-        fsk_demod_lib.demod(detected_buffer[window_start:],
-                            SAMPLING_RATE, BIT_RATE)
+        fsk_demod_lib.demod(detected_buffer[window_start: window_start+DATA_LEN*SAMP_PER_BIT], SAMPLING_RATE, BIT_RATE)
     else:
         print "Could not find start"
 
@@ -122,3 +120,5 @@ while True:
         start_recording()
         print "Finished recording"
         parse_recording()
+
+

@@ -24,10 +24,6 @@ def demod(carrier, Fs, bitrate):
     # filter our signal 
     carrier_filtered = signal.lfilter( lpf, 1.0, carrier_env)
 
-    pyplot.plot(carrier)
-    pyplot.plot(carrier_filtered)
-    pyplot.show()
-
     # slicing
     mean = np.mean(carrier_filtered)
 
@@ -36,12 +32,16 @@ def demod(carrier, Fs, bitrate):
     sampled_signal = carrier_filtered[int(Fs/bitrate/2) : len(carrier_filtered) : int(Fs/bitrate)]
     for bit in sampled_signal: 
         if bit > mean: 
-            rx_data.append(1)
-        else: 
             rx_data.append(0)
+        else: 
+            rx_data.append(1)
 
     print "outbits: "+str(np.array(rx_data))
 
+    pyplot.plot(carrier_filtered)
+    pyplot.show()
+
+    """
     bits = [1, 0, 1, 0]
     biterror = 0
     for i, bit in enumerate(bits):
@@ -49,3 +49,4 @@ def demod(carrier, Fs, bitrate):
             biterror += 1
 
     print biterror
+    """
