@@ -28,8 +28,8 @@
       function modulate(bits) {
         // Define modulation parameters
         var Fs = audioContext.sampleRate;
-        var Fc = 250;
-        var Fmod = 100;
+        var Fc = 350;
+        var Fmod = 50;
         var bitRate = 1;
         var sampPerBit = Math.floor(Fs / bitRate);
 
@@ -50,18 +50,18 @@
 
         // Create an audio buffer
         var duration = freqs.length;
-        var startLen = 2*sampPerBit;
+        var startLen = 3*sampPerBit;
         var numChannels = 1;
         var buffer = audioContext.createBuffer(numChannels, duration+startLen, Fs);
 
         // Fill the channel with the desired frequency data
         var channelData = buffer.getChannelData(0);
-        for (var i = 0; i < startLen; i++) {
+        for (var i = 0; i < 2*sampPerBit; i++) {
           channelData[i] = Math.sin(2*Math.PI*(Fc-Fmod)*i/Fs);
           channelData[i] += Math.sin(2*Math.PI*(Fc+Fmod)*i/Fs);
         }
-        for (var i = startLen; i < duration + startLen; i++) {
-          channelData[i] = Math.sin(2*Math.PI*freqs[i]*i/Fs);
+        for (var i = 0; i < duration; i++) {
+          channelData[i+startLen] = Math.sin(2*Math.PI*freqs[i]*i/Fs);
         }
 
         // Create audio source node
