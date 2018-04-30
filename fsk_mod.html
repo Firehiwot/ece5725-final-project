@@ -56,7 +56,7 @@
 
         // Fill the channel with the desired frequency data
         var channelData = buffer.getChannelData(0);
-        for (var i = 0; i < 2*sampPerBit; i++) {
+        for (var i = 0; i < 3*sampPerBit; i++) {
           channelData[i] = Math.sin(2*Math.PI*(Fc-Fmod)*i/Fs);
           channelData[i] += Math.sin(2*Math.PI*(Fc+Fmod)*i/Fs);
         }
