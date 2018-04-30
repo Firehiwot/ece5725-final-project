@@ -24,7 +24,7 @@ PEAK_BANDWIDTH = 5
 AVG_BANDWIDTH = 30
 PEAK_HEIGHT = 1.4
 
-PREFIX_LEN = 3
+PREFIX_LEN = 5
 DATA_LEN = 4
 TRANSMISSION_LENGTH = (PREFIX_LEN + DATA_LEN + 1) * SAMP_PER_BIT
 
@@ -62,39 +62,7 @@ def parse_recording():
     """
     Find the end of the prefix and then pass the data samples to the decoder.
     """
-    # Slide a window by 1/10 of the slot size until there is no longer a peak
-    # detected at both the high and low frequencies for 3 consecutive shifts
-    window_start = 0
-    missing_peaks = 0
-    while (missing_peaks < 3 and
-           window_start + SAMP_PER_BIT <= len(detected_buffer)):
-        # Check for peaks
-        fft = np.fft.fft(detected_buffer[window_start:
-                                         window_start+SAMP_PER_BIT])
-        low_band_avg = np.mean(np.abs(fft[LOW_FREQ-AVG_BANDWIDTH:
-                                          LOW_FREQ+AVG_BANDWIDTH]))
-        high_band_avg = np.mean(np.abs(fft[HIGH_FREQ-AVG_BANDWIDTH:
-                                           HIGH_FREQ+AVG_BANDWIDTH]))
-        low_band_peak = np.mean(np.abs(fft[LOW_FREQ-PEAK_BANDWIDTH:
-                                           LOW_FREQ+PEAK_BANDWIDTH]))
-        high_band_peak = np.mean(np.abs(fft[HIGH_FREQ-PEAK_BANDWIDTH:
-                                            HIGH_FREQ+PEAK_BANDWIDTH]))
-        if (high_band_peak > PEAK_HEIGHT*high_band_avg and
-            low_band_peak > PEAK_HEIGHT*low_band_avg):
-            missing_peaks = 0
-        else:
-            missing_peaks += 1
-
-        # Move the window
-        window_start += int(SAMP_PER_BIT / 10)
-
-    # Check if the end of the prefix could be determined
-    if missing_peaks == 3:
-        window_start += SAMP_PER_BIT - int(SAMP_PER_BIT/10)
-        print "Found start at {}".format(window_start)
-        fsk_demod_lib.demod(detected_buffer[window_start: window_start+DATA_LEN*SAMP_PER_BIT], SAMPLING_RATE, BIT_RATE)
-    else:
-        print "Could not find start"
+    fsk_demod_lib.demod(detected_buffer, SAMPLING_RATE, BIT_RATE, DATA_LEN, SAMP_PER_BIT)
 
 # Continuously look for a start of transmission
 while True:

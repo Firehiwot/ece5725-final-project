@@ -8,7 +8,7 @@ import scipy.signal as signal
 import numpy as np
 import matplotlib.pyplot as pyplot
 
-def demod(carrier, Fs, bitrate):
+def demod(carrier, Fs, bitrate, DATA_LEN, SAMP_PER_BIT): # whole_sig, start):
     """
     Demodulates the carrier into a bit string.
     """
@@ -23,23 +23,41 @@ def demod(carrier, Fs, bitrate):
 
     # filter our signal 
     carrier_filtered = signal.lfilter( lpf, 1.0, carrier_env)
-
+    
     # slicing
+    pre_mean = np.mean(carrier_filtered[1000:-3000])
+    pre_carrier = carrier_filtered 
+    # detect start of data
+    M = 150  # window size
+    i = 1000
+    thresh = 0.98
+    new_avg = pre_mean
+    while new_avg > pre_mean*thresh:
+        new_avg = np.mean(carrier_filtered[i : i+M])
+        i += M
+    
+    carrier_filtered = carrier_filtered[i-M+SAMP_PER_BIT : i-M+(DATA_LEN+1)*SAMP_PER_BIT]  # get relevant data
+    
     mean = np.mean(carrier_filtered)
 
     # slice to ones and zeros to extract original bits
     rx_data = []
     sampled_signal = carrier_filtered[int(Fs/bitrate/2) : len(carrier_filtered) : int(Fs/bitrate)]
+    
     for bit in sampled_signal: 
         if bit > mean: 
-            rx_data.append(0)
-        else: 
             rx_data.append(1)
+        else: 
+            rx_data.append(0)
+
+    #print "outbits: "+str(np.array(rx_data))
+
+    pyplot.plot(pre_carrier)
+    pyplot.plot([i, i-1], [2500,0])
+    pyplot.plot([pre_mean]*len(pre_carrier))
+    pyplot.show()
 
     print "outbits: "+str(np.array(rx_data))
-
-    pyplot.plot(carrier_filtered)
-    pyplot.show()
 
     """
     bits = [1, 0, 1, 0]
