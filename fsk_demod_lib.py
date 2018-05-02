@@ -36,9 +36,10 @@ def demod(carrier, Fs, bitrate, DATA_LEN, SAMP_PER_BIT): # whole_sig, start):
         new_avg = np.mean(carrier_filtered[i : i+M])
         i += M
     
-    carrier_filtered = carrier_filtered[i-M+SAMP_PER_BIT : i-M+(DATA_LEN+1)*SAMP_PER_BIT]  # get relevant data
+    carrier_filtered = carrier_filtered[i-M + 2*SAMP_PER_BIT : i-M+(DATA_LEN+2)*SAMP_PER_BIT]  # get relevant data
     
     mean = np.mean(carrier_filtered)
+    mean = np.mean(carrier_filtered[carrier_filtered < 2*mean])
 
     # slice to ones and zeros to extract original bits
     rx_data = []
@@ -53,8 +54,8 @@ def demod(carrier, Fs, bitrate, DATA_LEN, SAMP_PER_BIT): # whole_sig, start):
     #print "outbits: "+str(np.array(rx_data))
 
     pyplot.plot(pre_carrier)
-    pyplot.plot([i, i-1], [2500,0])
-    pyplot.plot([pre_mean]*len(pre_carrier))
+    pyplot.plot([i, i-1], [60,0])
+    pyplot.plot([mean]*len(pre_carrier))
     pyplot.show()
 
     print "outbits: "+str(np.array(rx_data))

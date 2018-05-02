@@ -5,7 +5,7 @@ import numpy as np
 
 from mcp3008 import read_adc
 
-Fs = 44100
+Fs = 7500
 
 samples = []
 next_time = time.time() + 1 / float(Fs)
@@ -19,7 +19,7 @@ for i in range(Fs):
 
 fft = np.log(np.abs(np.fft.fft(samples)))
 
-#pyplot.plot(np.fft.fftfreq(Fs, 1/float(Fs)), fft)
-#pyplot.show()
+pyplot.plot(np.fft.fftfreq(Fs, 1/float(Fs)), fft)
+pyplot.show()
 
 GPIO.cleanup()
