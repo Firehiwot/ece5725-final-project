@@ -36,26 +36,44 @@ def demod(carrier, Fs, bitrate, DATA_LEN, SAMP_PER_BIT): # whole_sig, start):
         new_avg = np.mean(carrier_filtered[i : i+M])
         i += M
     
-    carrier_filtered = carrier_filtered[i-M + 2*SAMP_PER_BIT : i-M+(DATA_LEN+2)*SAMP_PER_BIT]  # get relevant data
+    carrier_filtered = carrier_filtered[i-M + 0*SAMP_PER_BIT : i-M+(DATA_LEN+0)*SAMP_PER_BIT]  # get relevant data
     
+    # split signal into four regions
     mean = np.mean(carrier_filtered)
     mean = np.mean(carrier_filtered[carrier_filtered < 2*mean])
+    
+    carrier_prefix = carrier_filtered[0:4*SAMP_PER_BIT]
 
+    # determine "decision regions"
+    split2 = np.mean(carrier_prefix)
+    split1 = np.mean(carrier_prefix[carrier_prefix < split2])  
+    split3 = np.mean(carrier_prefix[carrier_prefix > split2])
+    
     # slice to ones and zeros to extract original bits
     rx_data = []
     sampled_signal = carrier_filtered[int(Fs/bitrate/2) : len(carrier_filtered) : int(Fs/bitrate)]
     
     for bit in sampled_signal: 
-        if bit > mean: 
-            rx_data.append(1)
-        else: 
+        if bit < split1: 
             rx_data.append(0)
+            rx_data.append(0)
+        elif bit < split2:
+            rx_data.append(0)
+            rx_data.append(1)
+        elif bit < split3: 
+            rx_data.append(1)
+            rx_data.append(0)
+        else: 
+            rx_data.append(1)
+            rx_data.append(1)
 
     #print "outbits: "+str(np.array(rx_data))
 
     pyplot.plot(pre_carrier)
     pyplot.plot([i, i-1], [60,0])
-    pyplot.plot([mean]*len(pre_carrier))
+    pyplot.plot([split1]*len(pre_carrier))
+    pyplot.plot([split2]*len(pre_carrier))
+    pyplot.plot([split3]*len(pre_carrier))
     pyplot.show()
 
     print "outbits: "+str(np.array(rx_data))
