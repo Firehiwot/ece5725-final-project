@@ -8,7 +8,10 @@ import scipy.signal as signal
 import numpy as np
 import matplotlib.pyplot as pyplot
 
-def demod(carrier, Fs, bitrate, DATA_LEN, SAMP_PER_BIT): # whole_sig, start):
+#def decode(carrier_filtered, bitspersym):
+
+
+def demod(carrier, Fs, symbolrate, DATA_SAMPLES, SAMP_PER_SYMBOL, bitspersym): # whole_sig, start):
     """
     Demodulates the carrier into a bit string.
     """
@@ -19,30 +22,30 @@ def demod(carrier, Fs, bitrate, DATA_LEN, SAMP_PER_BIT): # whole_sig, start):
     carrier_env = np.abs(sigtool.hilbert(carrier_diff))
 
     # create low pass filter
-    lpf = signal.firwin(numtaps=100, cutoff=bitrate*2, nyq=Fs/2)
+    lpf = signal.firwin(numtaps=100, cutoff=symbolrate*2, nyq=Fs/2)
 
     # filter our signal 
     carrier_filtered = signal.lfilter( lpf, 1.0, carrier_env)
     
     # slicing
-    pre_mean = np.mean(carrier_filtered[1000:-3000])
+    pre_mean = np.mean(carrier_filtered[1000:5000])
     pre_carrier = carrier_filtered 
     # detect start of data
     M = 150  # window size
-    i = 1000
+    i = 7000
     thresh = 0.98
     new_avg = pre_mean
     while new_avg > pre_mean*thresh:
         new_avg = np.mean(carrier_filtered[i : i+M])
         i += M
     
-    carrier_filtered = carrier_filtered[i-M + 0*SAMP_PER_BIT : i-M+(DATA_LEN+0)*SAMP_PER_BIT]  # get relevant data
+    carrier_filtered = carrier_filtered[i-M + 0*SAMP_PER_SYMBOL : i-M+DATA_SAMPLES]  # get relevant data
     
     # split signal into four regions
     mean = np.mean(carrier_filtered)
     mean = np.mean(carrier_filtered[carrier_filtered < 2*mean])
     
-    carrier_prefix = carrier_filtered[0:4*SAMP_PER_BIT]
+    carrier_prefix = carrier_filtered[0:4*SAMP_PER_SYMBOL]
 
     # determine "decision regions"
     split2 = np.mean(carrier_prefix)
@@ -51,8 +54,9 @@ def demod(carrier, Fs, bitrate, DATA_LEN, SAMP_PER_BIT): # whole_sig, start):
     
     # slice to ones and zeros to extract original bits
     rx_data = []
-    sampled_signal = carrier_filtered[int(Fs/bitrate/2) : len(carrier_filtered) : int(Fs/bitrate)]
-    
+    sampled_signal = carrier_filtered[int(Fs/symbolrate/2) : len(carrier_filtered) : int(Fs/symbolrate)]
+    #rx_data = decode(carrier_filtered, bitspersym)
+
     for bit in sampled_signal: 
         if bit < split1: 
             rx_data.append(0)
