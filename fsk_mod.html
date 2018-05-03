@@ -20,7 +20,8 @@
         modulate(bits);
       }, false);
 
-      var audioContext = new AudioContext();
+      var audioContext = typeof AudioContext != "undefined" ?
+        new AudioContext() : new webkitAudioContext();
 
       /**
        * Modulate bits into frequencies.
