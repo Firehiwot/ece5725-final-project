@@ -7,6 +7,7 @@ import scipy.signal.signaltools as sigtool
 import scipy.signal as signal 
 import numpy as np
 import matplotlib.pyplot as pyplot
+import time
 
 def decode(signal, Fs, symbolrate, bitspersym, SAMP_PER_SYMBOL):
     # Find the splits
@@ -28,10 +29,12 @@ def decode(signal, Fs, symbolrate, bitspersym, SAMP_PER_SYMBOL):
         # Decode the bits from the split
         outbits += list(format(split, '0' + str(bitspersym) + 'b'))
 
+    """
     pyplot.plot(signal)
     for split in splits:
         pyplot.plot([split] * len(signal))
     pyplot.show()
+    """
 
     return [int(bit) for bit in outbits]
 
@@ -40,21 +43,29 @@ def demod(carrier, Fs, symbolrate, DATA_SAMPLES, SAMP_PER_SYMBOL, bitspersym): #
     Demodulates the carrier into a bit string.
     """
     # differentiate received carrier signal
+    start_time = time.time()
+    print "Differentiating"
     carrier_diff = np.diff(carrier, 1)
+    print "...done in {} seconds".format(time.time() - start_time)
 
     # detect envelope to extract digital data 
+    start_time = time.time()
+    print "Applying envelope"
     carrier_env = np.abs(sigtool.hilbert(carrier_diff))
+    print "...done in {} seconds".format(time.time() - start_time)
 
     # create low pass filter
     lpf = signal.firwin(numtaps=100, cutoff=symbolrate*2, nyq=Fs/2)
 
     # filter our signal 
+    start_time = time.time()
+    print "Applying LPF"
     carrier_filtered = signal.lfilter( lpf, 1.0, carrier_env)
+    print "...done in {} seconds".format(time.time() - start_time)
     
-    # slicing
-    pre_mean = np.mean(carrier_filtered[1000:5000])
-    pre_carrier = carrier_filtered 
     # detect start of data
+    start_time = time.time()
+    print "Detecting start of data"
     M = 150  # window size
     i = len(carrier_filtered) - M - 1
     thresh = 2
@@ -65,6 +76,7 @@ def demod(carrier, Fs, symbolrate, DATA_SAMPLES, SAMP_PER_SYMBOL, bitspersym): #
         i -= M
         new_avg = np.mean(carrier_filtered[i:i+M])
     carrier_filtered = carrier_filtered[i-DATA_SAMPLES:i]  # get relevant data
+    print "...done in {} seconds".format(time.time() - start_time)
     """
     i = 7000
     thresh = 0.88
@@ -108,14 +120,17 @@ def demod(carrier, Fs, symbolrate, DATA_SAMPLES, SAMP_PER_SYMBOL, bitspersym): #
     #print "outbits: "+str(np.array(rx_data))
     """
 
-    pyplot.plot(pre_carrier)
-    pyplot.plot([i, i-1], [60,0])
+    #pyplot.plot(pre_carrier)
+    #pyplot.plot([i, i-1], [60,0])
     #pyplot.plot([split1]*len(pre_carrier))
     #pyplot.plot([split2]*len(pre_carrier))
     #pyplot.plot([split3]*len(pre_carrier))
-    pyplot.show()
+    #pyplot.show()
 
+    start_time = time.time()
+    print "Decoding data"
     rx_data = decode(carrier_filtered, Fs, symbolrate, bitspersym, SAMP_PER_SYMBOL)
+    print "...done in {} seconds".format(time.time() - start_time)
     print "outbits: "+str(np.array(rx_data))
 
     """
