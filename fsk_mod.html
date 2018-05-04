@@ -36,16 +36,24 @@
 
         // Convert the bits into an array of frequencies
         var freqs = [];
-        for (var i = 0; i < bits.length; i++) {
-          if (bits[i] == "0") {
-            for (var j = 0; j < sampPerBit; j++) {
-              freqs.push(Fc - Fmod);
-            }
+        function pushFreq(freq) {
+          for (var j = 0; j < sampPerBit; j++) {
+            freqs.push(freq);
           }
-          else {
-            for (var j = 0; j < sampPerBit; j++) {
-              freqs.push(Fc + Fmod);
-            }
+        }
+        for (var i = 0; i < bits.length; i += 2) {
+          var chunk = bits[i] + bits[i+1];
+          if (chunk == "00") {
+            pushFreq(400);
+          }
+          else if (chunk == "01") {
+            pushFreq(500);
+          }
+          else if (chunk == "10") {
+            pushFreq(600);
+          }
+          else if (chunk == "11") {
+            pushFreq(700);
           }
         }
 
