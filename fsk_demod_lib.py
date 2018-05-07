@@ -9,6 +9,24 @@ import numpy as np
 import matplotlib.pyplot as pyplot
 import time
 
+def crc_remainder(inbits, poly_bitstr):
+    """
+    Calculates the CRC remainder of arriving input bits
+    """
+    
+    # get number of sent bits
+    numbits = len(inbits)-len(poly_bitstr)
+    inbits = list(inbits)
+    while '1' in inbits[:numbits]:
+        cur_shift = inbits.index('1')
+        for i in range(len(poly_bitstr)):
+            if poly_bitstr[i] == inbits[cur_shift + i]:
+                inbits[cur_shift + i] = '0'
+            else: 
+                inbits[cur_shift + i] = '1'
+
+    return ''.join(inbits)[numbits:]
+
 def decode(signal, Fs, symbolrate, bitspersym, SAMP_PER_SYMBOL):
     # Find the splits
     splits = []
@@ -77,55 +95,13 @@ def demod(carrier, Fs, symbolrate, DATA_SAMPLES, SAMP_PER_SYMBOL, bitspersym): #
         new_avg = np.mean(carrier_filtered[i:i+M])
     carrier_filtered = carrier_filtered[i-DATA_SAMPLES:i]  # get relevant data
     print "...done in {} seconds".format(time.time() - start_time)
-    """
-    i = 7000
-    thresh = 0.88
-    new_avg = pre_mean
-    while new_avg > pre_mean*thresh:
-        new_avg = np.mean(carrier_filtered[i:i+M])
-        i += M
-    carrier_filtered = carrier_filtered[i-M:i-M+DATA_SAMPLES]
-    """
-    
-    """
-    # split signal into four regions
-    mean = np.mean(carrier_filtered)
-    mean = np.mean(carrier_filtered[carrier_filtered < 2*mean])
-    
-    carrier_prefix = carrier_filtered[0:4*SAMP_PER_SYMBOL]
 
-    # determine "decision regions"
-    split2 = np.mean(carrier_prefix)
-    split1 = np.mean(carrier_prefix[carrier_prefix < split2])  
-    split3 = np.mean(carrier_prefix[carrier_prefix > split2])
-    
-    # slice to ones and zeros to extract original bits
-    rx_data = []
-    sampled_signal = carrier_filtered[int(Fs/symbolrate/2) : len(carrier_filtered) : int(Fs/symbolrate)]
-
-    for bit in sampled_signal: 
-        if bit < split1: 
-            rx_data.append(0)
-            rx_data.append(0)
-        elif bit < split2:
-            rx_data.append(0)
-            rx_data.append(1)
-        elif bit < split3: 
-            rx_data.append(1)
-            rx_data.append(0)
-        else: 
-            rx_data.append(1)
-            rx_data.append(1)
-
-    #print "outbits: "+str(np.array(rx_data))
-    """
-
-    #pyplot.plot(pre_carrier)
-    #pyplot.plot([i, i-1], [60,0])
+    pyplot.plot(carrier_filtered)
+    pyplot.plot([i, i-1], [60,0])
     #pyplot.plot([split1]*len(pre_carrier))
     #pyplot.plot([split2]*len(pre_carrier))
     #pyplot.plot([split3]*len(pre_carrier))
-    #pyplot.show()
+    pyplot.show()
 
     start_time = time.time()
     print "Decoding data"
@@ -133,6 +109,12 @@ def demod(carrier, Fs, symbolrate, DATA_SAMPLES, SAMP_PER_SYMBOL, bitspersym): #
     print "...done in {} seconds".format(time.time() - start_time)
     print "outbits: "+str(np.array(rx_data))
 
+    data_str = ''.join(str(i) for i in rx_data)
+
+    error_code = crc_remainder(data_str, '11011')
+
+    print error_code
+    
     """
     bits = [1, 0, 1, 0]
     biterror = 0
