@@ -17,6 +17,7 @@
 
         // Get the bits
         var bits = document.getElementById("bits").value.trim().split('');
+        audioContext.resume();
         modulate(bits);
       }, false);
 
