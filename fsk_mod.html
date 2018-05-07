@@ -7,7 +7,7 @@
   <body>
     <p>
       <label for="bits">Bits to send:</label>
-      <input type="text" id="bits">
+      <input type="text" id="bits" value="0001101111001010">
       <button id="play-sound">Play Sound</button>
     </p>
 
@@ -24,6 +24,48 @@
       var audioContext = typeof AudioContext != "undefined" ?
         new AudioContext() : new webkitAudioContext();
 
+      String.prototype.replaceAt = function(index, replacement) {
+        return this.substr(0, index) + replacement +
+               this.substr(index + replacement.length);
+      }
+
+      /**
+       * Compute the CRC remainder for a bitstring.
+       *
+       * @param bits {String} The bitstring
+       * @param poly {String} The CRC polynomial bitstring
+       * @param pad  {String} The padding to put after the bitstring (optional,
+       *                      defaults to all zeros)
+       *
+       * @return {String} The CRC remainder
+       */
+      function calcCrc(bits, poly, padding) {
+        // Right pad the bitstring with as many zeros as the length of the
+        // polynomial
+        if (padding == undefined) {
+          var padding = [];
+          for (var i = 0; i < poly.length - 1; i++) {
+            padding.push("0");
+          }
+        }
+        var paddedBits = bits.slice(0).concat(padding);
+
+        var numBits = bits.length;
+        while (paddedBits.slice(0, numBits).indexOf("1") != -1) {
+          var currShift = paddedBits.indexOf("1");
+          for (var i = 0; i < poly.length; i++) {
+            if (poly[i] == paddedBits[currShift + i]) {
+              paddedBits[currShift + i] = "0";
+            }
+            else {
+              paddedBits[currShift + i] = "1";
+            }
+          }
+        }
+
+        return paddedBits.slice(numBits, numBits + poly.length - 1);
+      }
+
       /**
        * Modulate bits into frequencies.
        */
@@ -34,6 +76,8 @@
         var Fmod = 50;
         var bitRate = 4;
         var sampPerBit = Math.floor(Fs / bitRate);
+
+        bits = bits.concat(calcCrc(bits, "11011"));
 
         // Convert the bits into an array of frequencies
         var freqs = [];
