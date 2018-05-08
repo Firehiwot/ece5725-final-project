@@ -100,6 +100,7 @@
         secondStart.start();
         setTimeout(function() {
           secondStart.stop();
+          secondStart.disconnect();
         }, 3000);
 
         // Start the oscillator and stop it once the transmission is done
@@ -107,6 +108,8 @@
         oscillator.start();
         setTimeout(function() {
           oscillator.stop();
+          oscillator.disconnect();
+          audioContext.close();
         }, currTime*1000);
       }
     </script>
