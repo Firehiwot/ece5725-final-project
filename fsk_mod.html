@@ -76,6 +76,7 @@
         var Fmod = 50;
         var bitRate = 4;
         var sampPerBit = Math.floor(Fs / bitRate);
+        var amplitude = 5;
 
         bits = bits.concat(calcCrc(bits, "11011"));
 
@@ -111,11 +112,11 @@
         // Fill the channel with the desired frequency data
         var channelData = buffer.getChannelData(0);
         for (var i = 0; i < startLen; i++) {
-          channelData[i] = Math.sin(2*Math.PI*(Fc-Fmod)*i/Fs);
-          channelData[i] += Math.sin(2*Math.PI*(Fc+Fmod)*i/Fs);
+          channelData[i] = amplitude*Math.sin(2*Math.PI*(Fc-Fmod)*i/Fs);
+          channelData[i] += amplitude*Math.sin(2*Math.PI*(Fc+Fmod)*i/Fs);
         }
         for (var i = 0; i < duration; i++) {
-          channelData[i+startLen] = Math.sin(2*Math.PI*freqs[i]*i/Fs);
+          channelData[i+startLen] = amplitude*Math.sin(2*Math.PI*freqs[i]*i/Fs);
         }
 
         // Create audio source node
