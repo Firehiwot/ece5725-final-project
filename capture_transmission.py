@@ -20,16 +20,19 @@ adc.start_adc(CHANNEL, gain=GAIN, data_rate=SAMPLING_RATE)
 M = 2  # number of bits per symbol
 SYMBOL_RATE = 4
 SAMP_PER_SYMBOL = SAMPLING_RATE / SYMBOL_RATE
-HIGH_FREQ = 400
-LOW_FREQ = 300
-PEAK_BANDWIDTH = 5
-AVG_BANDWIDTH = 30
-PEAK_HEIGHT = 1.4
+HIGH_FREQ = 400  # Hz
+LOW_FREQ = 300   # Hz 
+PEAK_BANDWIDTH = 5  # Hz
+AVG_BANDWIDTH = 30  # Hz
+PEAK_HEIGHT = 1.4   # power
 
-PREFIX_SAMPLES = 3*SAMPLING_RATE 
-DATA_BITS = 16  # bits
+PREFIX_MULTIPLIER = 1  # adjust the length of start signal 
+PREFIX_SAMPLES = PREFIX_MULTIPLIER*SAMPLING_RATE 
+DATA_BITS = 32  # bits
+CRC_BITS = 4
 DATA_SAMPLES = (DATA_BITS / M) * SAMP_PER_SYMBOL
-TRANSMISSION_LENGTH = PREFIX_SAMPLES + DATA_SAMPLES + SAMP_PER_SYMBOL  # samples
+CRC_SAMPLES = (CRC_BITS / M) * SAMP_PER_SYMBOL
+TRANSMISSION_LENGTH = PREFIX_SAMPLES + DATA_SAMPLES + CRC_SAMPLES + SAMP_PER_SYMBOL  # samples
 
 # Keep a buffer of samples
 start_buffer = [0] * SAMP_PER_SYMBOL
@@ -65,35 +68,31 @@ def parse_recording():
     """
     Find the end of the prefix and then pass the data samples to the decoder.
     """
-    fsk_demod_lib.demod(detected_buffer, SAMPLING_RATE, SYMBOL_RATE, DATA_SAMPLES, SAMP_PER_SYMBOL, M)
+    fsk_demod_lib.demod(detected_buffer, SAMPLING_RATE, SYMBOL_RATE, DATA_SAMPLES, CRC_SAMPLES, SAMP_PER_SYMBOL, M)
 
 # Continuously look for a start of transmission
 while True:
-    try:
-        # Sample one slot's worth of samples from the ADC
-        sample_slot(start_buffer)
+    # Sample one slot's worth of samples from the ADC
+    sample_slot(start_buffer)
 
-        # Check if there has been a spike at the high and low frequencies,
-        # indicating the start of a transmission
-        fft = np.fft.fft(start_buffer)
-        low_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-AVG_BANDWIDTH:
-                                          SYMBOL_RATE*LOW_FREQ+AVG_BANDWIDTH]))
-        high_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-AVG_BANDWIDTH:
-                                           SYMBOL_RATE*HIGH_FREQ+AVG_BANDWIDTH]))
-        low_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-PEAK_BANDWIDTH:
-                                           SYMBOL_RATE*LOW_FREQ+PEAK_BANDWIDTH]))
-        high_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-PEAK_BANDWIDTH:
-                                            SYMBOL_RATE*HIGH_FREQ+PEAK_BANDWIDTH]))
-        #print "high: {}\thigh band: {}".format(high_band_peak, high_band_avg)  
-        #print "low: {}\tlow band: {}".format(low_band_peak, low_band_avg)
-        if (high_band_peak > PEAK_HEIGHT*high_band_avg and
-            low_band_peak > PEAK_HEIGHT*low_band_avg):
-            print "Detected"
-            start_recording()
-            print "Finished recording"
-            parse_recording()
-    except KeyboardInterrupt:
-        GPIO.cleanup()
+    # Check if there has been a spike at the high and low frequencies,
+    # indicating the start of a transmission
+    fft = np.fft.fft(start_buffer)
+    low_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-AVG_BANDWIDTH:
+                                      SYMBOL_RATE*LOW_FREQ+AVG_BANDWIDTH]))
+    high_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-AVG_BANDWIDTH:
+                                       SYMBOL_RATE*HIGH_FREQ+AVG_BANDWIDTH]))
+    low_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-PEAK_BANDWIDTH:
+                                       SYMBOL_RATE*LOW_FREQ+PEAK_BANDWIDTH]))
+    high_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-PEAK_BANDWIDTH:
+                                        SYMBOL_RATE*HIGH_FREQ+PEAK_BANDWIDTH]))
+    #print "high: {}\thigh band: {}".format(high_band_peak, high_band_avg)  
+    #print "low: {}\tlow band: {}".format(low_band_peak, low_band_avg)
+    if (high_band_peak > PEAK_HEIGHT*high_band_avg and
+        low_band_peak > PEAK_HEIGHT*low_band_avg):
+        print "Detected"
+        start_recording()
+        print "Finished recording"
+        parse_recording()
 
-GPIO.cleanup()
 
