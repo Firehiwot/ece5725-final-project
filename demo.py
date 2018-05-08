@@ -5,16 +5,31 @@
 
 import os
 import pygame
+import sys
 import time
 from mcp3008 import read_adc
 import numpy as np
 import fsk_demod_lib
+import RPi.GPIO as GPIO
 
-# Set up environment variables to display on PiTFT
-os.putenv('SDL_VIDEODRIVER', 'fbcon')
-os.putenv('SDL_FBDEV', '/dev/fb1')
-os.putenv('SDL_MOUSEDRV', 'TSLIB')
-os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
+if '--real' in sys.argv:
+    # Set up environment variables to display on PiTFT
+    os.putenv('SDL_VIDEODRIVER', 'fbcon')
+    os.putenv('SDL_FBDEV', '/dev/fb1')
+    os.putenv('SDL_MOUSEDRV', 'TSLIB')
+    os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
+
+# %%% GPIO INIT %%%
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+should_quit = False
+
+def quit_cb(channel):
+    global should_quit
+    should_quit = True
+    
+GPIO.add_event_detect(27, GPIO.FALLING, callback=quit_cb, bouncetime=300)
 
 # Initialize pygame
 pygame.init()
@@ -107,7 +122,7 @@ def render_text(text, color, center):
     screen.blit(surface, rect)
 
 # Continuously look for a start of transmission
-while True:
+while not should_quit:
 
     # Sample one slot's worth of samples from the ADC
     sample_slot(start_buffer)
@@ -131,5 +146,6 @@ while True:
         start_recording()
         print "Finished recording"
         parse_recording()
+        print "Done parsing"
 
 
