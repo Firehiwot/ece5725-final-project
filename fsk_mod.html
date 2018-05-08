@@ -17,17 +17,8 @@
 
         // Get the bits
         var bits = document.getElementById("bits").value.trim().split('');
-        audioContext.resume();
         modulate(bits);
       }, false);
-
-      var audioContext = typeof AudioContext != "undefined" ?
-        new AudioContext() : new webkitAudioContext();
-
-      String.prototype.replaceAt = function(index, replacement) {
-        return this.substr(0, index) + replacement +
-               this.substr(index + replacement.length);
-      }
 
       /**
        * Compute the CRC remainder for a bitstring.
@@ -71,61 +62,52 @@
        */
       function modulate(bits) {
         // Define modulation parameters
-        var Fs = audioContext.sampleRate;
-        var Fc = 350;
-        var Fmod = 50;
-        var bitRate = 4;
-        var sampPerBit = Math.floor(Fs / bitRate);
-        var amplitude = 1;
+        var symbolRate = 4;
+        var timePerSymbol = 1 / symbolRate;
 
+        // Add the CRC bits to the transmission
         bits = bits.concat(calcCrc(bits, "11011"));
 
+        // Create the audio context for transmission
+        var audioContext = typeof AudioContext != "undefined" ?
+          new AudioContext() : new webkitAudioContext();
+
         // Convert the bits into an array of frequencies
-        var freqs = [];
-        function pushFreq(freq) {
-          for (var j = 0; j < sampPerBit; j++) {
-            freqs.push(freq);
-          }
-        }
+        var oscillator = audioContext.createOscillator();
+        oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+        var currTime = audioContext.currentTime + 3;
         for (var i = 0; i < bits.length; i += 2) {
           var chunk = bits[i] + bits[i+1];
           if (chunk == "00") {
-            pushFreq(400);
+            oscillator.frequency.setValueAtTime(400, currTime);
           }
           else if (chunk == "01") {
-            pushFreq(500);
+            oscillator.frequency.setValueAtTime(500, currTime);
           }
           else if (chunk == "10") {
-            pushFreq(600);
+            oscillator.frequency.setValueAtTime(600, currTime);
           }
           else if (chunk == "11") {
-            pushFreq(700);
+            oscillator.frequency.setValueAtTime(700, currTime);
           }
+          currTime += timePerSymbol;
         }
 
-        // Create an audio buffer
-        var duration = freqs.length;
-        var startLen = 3*Fs;
-        var numChannels = 1;
-        var buffer = audioContext.createBuffer(numChannels, duration+startLen, Fs);
+        // Create the second start tone
+        var secondStart = audioContext.createOscillator();
+        secondStart.frequency.setValueAtTime(400, audioContext.currentTime);
+        secondStart.connect(audioContext.destination);
+        secondStart.start();
+        setTimeout(function() {
+          secondStart.stop();
+        }, 3000);
 
-        // Fill the channel with the desired frequency data
-        var channelData = buffer.getChannelData(0);
-        for (var i = 0; i < startLen; i++) {
-          channelData[i] = amplitude*Math.sin(2*Math.PI*(Fc-Fmod)*i/Fs);
-          channelData[i] += amplitude*Math.sin(2*Math.PI*(Fc+Fmod)*i/Fs);
-        }
-        for (var i = 0; i < duration; i++) {
-          channelData[i+startLen] = amplitude*Math.sin(2*Math.PI*freqs[i]*i/Fs);
-        }
-
-        // Create audio source node
-        var source = audioContext.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audioContext.destination);
-
-        // Play the sound
-        source.start();
+        // Start the oscillator and stop it once the transmission is done
+        oscillator.connect(audioContext.destination);
+        oscillator.start();
+        setTimeout(function() {
+          oscillator.stop();
+        }, currTime*1000);
       }
     </script>
   </body>
