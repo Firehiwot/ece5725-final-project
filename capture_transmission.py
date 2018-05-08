@@ -69,27 +69,31 @@ def parse_recording():
 
 # Continuously look for a start of transmission
 while True:
-    # Sample one slot's worth of samples from the ADC
-    sample_slot(start_buffer)
+    try:
+        # Sample one slot's worth of samples from the ADC
+        sample_slot(start_buffer)
 
-    # Check if there has been a spike at the high and low frequencies,
-    # indicating the start of a transmission
-    fft = np.fft.fft(start_buffer)
-    low_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-AVG_BANDWIDTH:
-                                      SYMBOL_RATE*LOW_FREQ+AVG_BANDWIDTH]))
-    high_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-AVG_BANDWIDTH:
-                                       SYMBOL_RATE*HIGH_FREQ+AVG_BANDWIDTH]))
-    low_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-PEAK_BANDWIDTH:
-                                       SYMBOL_RATE*LOW_FREQ+PEAK_BANDWIDTH]))
-    high_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-PEAK_BANDWIDTH:
-                                        SYMBOL_RATE*HIGH_FREQ+PEAK_BANDWIDTH]))
-    #print "high: {}\thigh band: {}".format(high_band_peak, high_band_avg)  
-    #print "low: {}\tlow band: {}".format(low_band_peak, low_band_avg)
-    if (high_band_peak > PEAK_HEIGHT*high_band_avg and
-        low_band_peak > PEAK_HEIGHT*low_band_avg):
-        print "Detected"
-        start_recording()
-        print "Finished recording"
-        parse_recording()
+        # Check if there has been a spike at the high and low frequencies,
+        # indicating the start of a transmission
+        fft = np.fft.fft(start_buffer)
+        low_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-AVG_BANDWIDTH:
+                                          SYMBOL_RATE*LOW_FREQ+AVG_BANDWIDTH]))
+        high_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-AVG_BANDWIDTH:
+                                           SYMBOL_RATE*HIGH_FREQ+AVG_BANDWIDTH]))
+        low_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-PEAK_BANDWIDTH:
+                                           SYMBOL_RATE*LOW_FREQ+PEAK_BANDWIDTH]))
+        high_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-PEAK_BANDWIDTH:
+                                            SYMBOL_RATE*HIGH_FREQ+PEAK_BANDWIDTH]))
+        #print "high: {}\thigh band: {}".format(high_band_peak, high_band_avg)  
+        #print "low: {}\tlow band: {}".format(low_band_peak, low_band_avg)
+        if (high_band_peak > PEAK_HEIGHT*high_band_avg and
+            low_band_peak > PEAK_HEIGHT*low_band_avg):
+            print "Detected"
+            start_recording()
+            print "Finished recording"
+            parse_recording()
+    except KeyboardInterrupt:
+        GPIO.cleanup()
 
+GPIO.cleanup()
 
