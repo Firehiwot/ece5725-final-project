@@ -121,12 +121,12 @@ def demod(carrier, Fs, symbolrate, DATA_SAMPLES, CRC_SAMPLES, SAMP_PER_SYMBOL, b
     carrier_filtered_new = carrier_filtered[i-DATA_SAMPLES-CRC_SAMPLES:i]  # get relevant data
     print "...done in {} seconds".format(time.time() - start_time)
 
-    pyplot.plot(carrier_filtered)
-    pyplot.plot([i, i-1], [60,0])
+    #pyplot.plot(carrier_filtered)
+    #pyplot.plot([i, i-1], [60,0])
     #pyplot.plot([split1]*len(pre_carrier))
     #pyplot.plot([split2]*len(pre_carrier))
     #pyplot.plot([split3]*len(pre_carrier))
-    pyplot.show()
+    #pyplot.show()
 
     start_time = time.time()
     print "Decoding data"
@@ -143,12 +143,6 @@ def demod(carrier, Fs, symbolrate, DATA_SAMPLES, CRC_SAMPLES, SAMP_PER_SYMBOL, b
     else: 
         print 'Invalid Signal'
     
-    """
-    bits = [1, 0, 1, 0]
-    biterror = 0
-    for i, bit in enumerate(bits):
-        if bit != rx_data[i]:
-            biterror += 1
+    # [:-4] cuts CRC error code out of data_str
+    return data_str[:-4], error_code
 
-    print biterror
-    """
