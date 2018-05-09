@@ -19,6 +19,7 @@ if '--real' in sys.argv:
     os.putenv('SDL_MOUSEDRV', 'TSLIB')
     os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
 
+
 # %%% GPIO INIT %%%
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -30,6 +31,7 @@ def quit_cb(channel):
     should_quit = True
     
 GPIO.add_event_detect(27, GPIO.FALLING, callback=quit_cb, bouncetime=300)
+
 
 # Initialize pygame
 pygame.init()
@@ -43,6 +45,10 @@ COLOR_GREEN = 0, 255, 0
 
 font_face = pygame.font.Font(None, 40)
 font_face_sm = pygame.font.Font(None, 18)
+
+# pygame images
+listen_img = pygame.image.load("listening_mic.png")
+capture_img = pygame.image.load("capture_mic.png")
 
 # %%% Signal Parameters %%%
 
@@ -96,6 +102,7 @@ def start_recording():
     for samp in range(TRANSMISSION_LENGTH/SAMP_PER_SYMBOL):
         sample_slot(detected_buffer, (samp)*SAMP_PER_SYMBOL)
 
+
 def parse_recording():
     """
     Find the end of the prefix and then pass the data samples to the decoder.
@@ -115,15 +122,36 @@ def parse_recording():
 
     return outbits, crc
 
+
 def render_text(text, color, center):
-    
+    """
+    Renders text on PiTFT screen
+    """
     surface = font_face.render(text, True, color)
     rect = surface.get_rect(center=center)
     screen.blit(surface, rect)
 
+
+def render_image(img, x, y):
+    """
+    Renders images on PiTFT screen
+    """
+    img_rect = img.get_rect()
+    #img_rect.centerx = x
+    #img_rect.centery = y
+    screen.blit(img, img_rect)
+
+
+# Keep track of program state
+state = 'listening'  # listening, capture, display
+
+
 # Continuously look for a start of transmission
 while not should_quit:
-
+    
+    if state == 'listening':
+        render_image(listen_img, 160, 120)
+        
     # Sample one slot's worth of samples from the ADC
     sample_slot(start_buffer)
 
