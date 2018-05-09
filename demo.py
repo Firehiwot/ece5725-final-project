@@ -33,6 +33,7 @@ def quit_cb(channel):
 GPIO.add_event_detect(27, GPIO.FALLING, callback=quit_cb, bouncetime=300)
 
 
+# %%% PYGAME %%%
 # Initialize pygame
 pygame.init()
 pygame.mouse.set_visible(False)
@@ -47,8 +48,10 @@ font_face = pygame.font.Font(None, 40)
 font_face_sm = pygame.font.Font(None, 18)
 
 # pygame images
-listen_img = pygame.image.load("listening_mic.png")
-capture_img = pygame.image.load("capture_mic.png")
+listen_img = pygame.image.load("listening_mic_icon.gif")
+listen_small_img = pygame.image.load("listening_mic_icon_small.gif")
+capture_img = pygame.image.load("capture_mic_icon.gif")
+
 
 # %%% Signal Parameters %%%
 
@@ -76,6 +79,7 @@ TRANSMISSION_LENGTH = PREFIX_SAMPLES + DATA_SAMPLES + CRC_SAMPLES + SAMP_PER_SYM
 start_buffer = [0] * SAMP_PER_SYMBOL
 detected_buffer = [0] * TRANSMISSION_LENGTH
 
+
 def sample_slot(arr, start_index=0):
     """
     Sample one time slot's worth of samples from the ADC.
@@ -95,10 +99,17 @@ def sample_slot(arr, start_index=0):
 
         arr[i+start_index] = read_adc(0)
 
+
 def start_recording():
     """
     Buffer an entire transmission after the start of transmission is detected.
     """
+    # Render image
+    if state == "capture": 
+        screen.fill(COLOR_BLACK)
+        render_image(capture_img, 160, 120)
+        pygame.display.flip()
+    # buffer transmission
     for samp in range(TRANSMISSION_LENGTH/SAMP_PER_SYMBOL):
         sample_slot(detected_buffer, (samp)*SAMP_PER_SYMBOL)
 
@@ -107,9 +118,14 @@ def parse_recording():
     """
     Find the end of the prefix and then pass the data samples to the decoder.
     """
+    # Decode the recording
     outbits, crc = fsk_demod_lib.demod(detected_buffer, SAMPLING_RATE, SYMBOL_RATE, DATA_SAMPLES, CRC_SAMPLES, SAMP_PER_SYMBOL, M)
+    
+    global state 
+    state = "display"
 
-
+    # Pygame rendering
+    # Success and error screens
     if crc == '0000':
         screen.fill(COLOR_GREEN)
         render_text(outbits[8:20], COLOR_WHITE, (160, 100))
@@ -117,7 +133,11 @@ def parse_recording():
     else:
         screen.fill(COLOR_RED)
         render_text("ERROR", COLOR_BLACK, (160,120))
-        
+    
+    # Show still listeing for signal
+    if state == "display":
+       render_image(listen_small_img, 280, 200)
+
     pygame.display.flip()
 
     return outbits, crc
@@ -137,8 +157,8 @@ def render_image(img, x, y):
     Renders images on PiTFT screen
     """
     img_rect = img.get_rect()
-    #img_rect.centerx = x
-    #img_rect.centery = y
+    img_rect.centerx = x
+    img_rect.centery = y
     screen.blit(img, img_rect)
 
 
@@ -151,6 +171,7 @@ while not should_quit:
     
     if state == 'listening':
         render_image(listen_img, 160, 120)
+        pygame.display.flip()
         
     # Sample one slot's worth of samples from the ADC
     sample_slot(start_buffer)
@@ -168,9 +189,11 @@ while not should_quit:
                                         SYMBOL_RATE*HIGH_FREQ+PEAK_BANDWIDTH]))
     #print "high: {}\thigh band: {}".format(high_band_peak, high_band_avg)  
     #print "low: {}\tlow band: {}".format(low_band_peak, low_band_avg)
+    
     if (high_band_peak > PEAK_HEIGHT*high_band_avg and
         low_band_peak > PEAK_HEIGHT*low_band_avg):
         print "Detected"
+        state = "capture"
         start_recording()
         print "Finished recording"
         parse_recording()
