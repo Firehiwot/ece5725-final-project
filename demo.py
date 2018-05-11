@@ -57,11 +57,11 @@ font_face = pygame.font.Font(None, 40)
 font_face_sm = pygame.font.Font(None, 18)
 
 # pygame images
-listen_img = pygame.image.load("listening_mic_icon.gif")
-listen_small_img = pygame.image.load("listening_mic_icon_small.gif")
-mute_img = pygame.image.load("mute_mic_icon.gif")
-mute_small_img = pygame.image.load("mute_mic_icon_small.gif")
-capture_img = pygame.image.load("capture_mic_icon.gif")
+listen_img = pygame.image.load("/home/pi/ece5725-final-project/listening_mic_icon.gif")
+listen_small_img = pygame.image.load("/home/pi/ece5725-final-project/listening_mic_icon_small.gif")
+mute_img = pygame.image.load("/home/pi/ece5725-final-project/mute_mic_icon.gif")
+mute_small_img = pygame.image.load("/home/pi/ece5725-final-project/mute_mic_icon_small.gif")
+capture_img = pygame.image.load("/home/pi/ece5725-final-project/capture_mic_icon.gif")
 
 
 # %%% Signal Parameters %%%
