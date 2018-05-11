@@ -23,15 +23,21 @@ if '--real' in sys.argv:
 # %%% GPIO INIT %%%
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 should_quit = False
+mute = False
 
 def quit_cb(channel):
     global should_quit
     should_quit = True
-    
-GPIO.add_event_detect(27, GPIO.FALLING, callback=quit_cb, bouncetime=300)
 
+def mute_cb(channel):
+    global mute 
+    mute = not mute
+
+GPIO.add_event_detect(27, GPIO.FALLING, callback=quit_cb, bouncetime=300)
+GPIO.add_event_detect(17, GPIO.FALLING, callback=mute_cb, bouncetime=300)
 
 # %%% PYGAME %%%
 # Initialize pygame
@@ -50,6 +56,8 @@ font_face_sm = pygame.font.Font(None, 18)
 # pygame images
 listen_img = pygame.image.load("listening_mic_icon.gif")
 listen_small_img = pygame.image.load("listening_mic_icon_small.gif")
+mute_img = pygame.image.load("mute_mic_icon.gif")
+mute_small_img = pygame.image.load("mute_mic_icon_small.gif")
 capture_img = pygame.image.load("capture_mic_icon.gif")
 
 
@@ -135,8 +143,10 @@ def parse_recording():
         render_text("ERROR", COLOR_BLACK, (160,120))
     
     # Show still listeing for signal
-    if state == "display":
+    if state == "display" and not mute:
        render_image(listen_small_img, 280, 200)
+    elif state == "diplay":
+        render_image(mute_small_img, 280, 200)
 
     pygame.display.flip()
 
@@ -170,33 +180,41 @@ state = 'listening'  # listening, capture, display
 while not should_quit:
     
     if state == 'listening':
-        render_image(listen_img, 160, 120)
-        pygame.display.flip()
-        
-    # Sample one slot's worth of samples from the ADC
-    sample_slot(start_buffer)
-
-    # Check if there has been a spike at the high and low frequencies,
-    # indicating the start of a transmission
-    fft = np.fft.fft(start_buffer)
-    low_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-AVG_BANDWIDTH:
-                                      SYMBOL_RATE*LOW_FREQ+AVG_BANDWIDTH]))
-    high_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-AVG_BANDWIDTH:
-                                       SYMBOL_RATE*HIGH_FREQ+AVG_BANDWIDTH]))
-    low_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-PEAK_BANDWIDTH:
-                                       SYMBOL_RATE*LOW_FREQ+PEAK_BANDWIDTH]))
-    high_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-PEAK_BANDWIDTH:
-                                        SYMBOL_RATE*HIGH_FREQ+PEAK_BANDWIDTH]))
-    #print "high: {}\thigh band: {}".format(high_band_peak, high_band_avg)  
-    #print "low: {}\tlow band: {}".format(low_band_peak, low_band_avg)
+        if not mute:
+            screen.fill(COLOR_BLACK)
+            render_image(listen_img, 160, 120)
+            pygame.display.flip()
+        else:
+            screen.fill(COLOR_BLACK)
+            render_image(mute_img, 160, 120)
+            pygame.display.flip()
     
-    if (high_band_peak > PEAK_HEIGHT*high_band_avg and
-        low_band_peak > PEAK_HEIGHT*low_band_avg):
-        print "Detected"
-        state = "capture"
-        start_recording()
-        print "Finished recording"
-        parse_recording()
-        print "Done parsing"
+    # Do the project
+    if not mute:
+        # Sample one slot's worth of samples from the ADC
+        sample_slot(start_buffer)
+
+        # Check if there has been a spike at the high and low frequencies,
+        # indicating the start of a transmission
+        fft = np.fft.fft(start_buffer)
+        low_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-AVG_BANDWIDTH:
+                                          SYMBOL_RATE*LOW_FREQ+AVG_BANDWIDTH]))
+        high_band_avg = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-AVG_BANDWIDTH:
+                                           SYMBOL_RATE*HIGH_FREQ+AVG_BANDWIDTH]))
+        low_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*LOW_FREQ-PEAK_BANDWIDTH:
+                                           SYMBOL_RATE*LOW_FREQ+PEAK_BANDWIDTH]))
+        high_band_peak = np.mean(np.abs(fft[SYMBOL_RATE*HIGH_FREQ-PEAK_BANDWIDTH:
+                                            SYMBOL_RATE*HIGH_FREQ+PEAK_BANDWIDTH]))
+        #print "high: {}\thigh band: {}".format(high_band_peak, high_band_avg)  
+        #print "low: {}\tlow band: {}".format(low_band_peak, low_band_avg)
+        
+        if (high_band_peak > PEAK_HEIGHT*high_band_avg and
+            low_band_peak > PEAK_HEIGHT*low_band_avg):
+            print "Detected"
+            state = "capture"
+            start_recording()
+            print "Finished recording"
+            parse_recording()
+            print "Done parsing"
 
 
