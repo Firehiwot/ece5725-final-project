@@ -46,12 +46,12 @@ def decode(signal, Fs, symbolrate, bitspersym, SAMP_PER_SYMBOL):
         # Decode the bits from the split
         outbits += list(format(split, '0' + str(bitspersym) + 'b'))
 
-    """
+    '''    
     pyplot.plot(signal)
     for split in splits:
         pyplot.plot([split] * len(signal))
     pyplot.show()
-    """
+    '''
 
     return [int(bit) for bit in outbits]
 
@@ -85,14 +85,7 @@ def demod(carrier, Fs, symbolrate, DATA_SAMPLES, CRC_SAMPLES, SAMP_PER_SYMBOL, b
     # detect envelope to extract digital data 
     start_time = time.time()
     print "Applying envelope, len(carrier_diff): "+ str(len(carrier_diff))
-    '''
-    padding = np.zeros(int(2**np.ceil(np.log2(len(carrier_diff)))) - len(carrier_diff))
-    tohilbert = np.hstack((carrier_diff, padding)) 
-    result = signal.hilbert(tohilbert)
-    result = result[0:len(carrier_diff)]
-    carrier_env = np.abs(result)
-    #carrier_env = np.abs(sigtool.hilbert(carrier_diff))
-    '''
+
     carrier_env = hilbert(carrier_diff)
 
     print "...done in {} seconds".format(time.time() - start_time)
@@ -139,10 +132,18 @@ def demod(carrier, Fs, symbolrate, DATA_SAMPLES, CRC_SAMPLES, SAMP_PER_SYMBOL, b
     if data_str.lstrip('0') != '':
         # Detect errors if valid signal
         error_code = crc_remainder(data_str, '11011')
-        print error_code
+        # error_flag true if no error
+        if error_code == '0000':
+            error_flag = True
+        else:
+            error_flag = False
+        print error_code, error_flag
     else: 
         print 'Invalid Signal'
+        error_flag = False
+        
+
     
     # [:-4] cuts CRC error code out of data_str
-    return data_str[:-4], error_code
+    return data_str[:-4], error_flag
 

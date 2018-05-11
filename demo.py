@@ -12,6 +12,7 @@ import numpy as np
 import fsk_demod_lib
 import RPi.GPIO as GPIO
 
+# Flag to play demo on PiTFT Screen
 if '--real' in sys.argv:
     # Set up environment variables to display on PiTFT
     os.putenv('SDL_VIDEODRIVER', 'fbcon')
@@ -35,6 +36,8 @@ def quit_cb(channel):
 def mute_cb(channel):
     global mute 
     mute = not mute
+    if state == "display":
+        display_bits()    
 
 GPIO.add_event_detect(27, GPIO.FALLING, callback=quit_cb, bouncetime=300)
 GPIO.add_event_detect(17, GPIO.FALLING, callback=mute_cb, bouncetime=300)
@@ -126,15 +129,26 @@ def parse_recording():
     """
     Find the end of the prefix and then pass the data samples to the decoder.
     """
+
+    global outbits, crc
     # Decode the recording
     outbits, crc = fsk_demod_lib.demod(detected_buffer, SAMPLING_RATE, SYMBOL_RATE, DATA_SAMPLES, CRC_SAMPLES, SAMP_PER_SYMBOL, M)
     
     global state 
     state = "display"
+    
+    display_bits()
+    
+    return outbits, crc
 
+
+def display_bits():
+    """
+    Display bits
+    """
     # Pygame rendering
     # Success and error screens
-    if crc == '0000':
+    if crc == True:
         screen.fill(COLOR_GREEN)
         render_text(outbits[8:20], COLOR_WHITE, (160, 100))
         render_text(outbits[20:],  COLOR_WHITE, (160, 140))
@@ -145,12 +159,12 @@ def parse_recording():
     # Show still listeing for signal
     if state == "display" and not mute:
        render_image(listen_small_img, 280, 200)
-    elif state == "diplay":
+    elif state == "display":
         render_image(mute_small_img, 280, 200)
 
     pygame.display.flip()
 
-    return outbits, crc
+
 
 
 def render_text(text, color, center):
