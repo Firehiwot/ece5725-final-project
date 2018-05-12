@@ -274,7 +274,7 @@
               <h1 id="future_work" class="checkpoint">Future Work</h1>
               <p>As the original goal of this project was to communicate using ultrasonic frequencies, future work on this project would primarily be focused on updating our project to handle higher frequency bands. This can be achieved by upgrading hardware components used (primarily purchasing a more sensitive microphone and possibly constructing a preamplifier circuit) and with small modifications to our software at the encoder and decoder.</p>
 
-              <p>In addition, we would like to fix the issue of power spikes causing improper detection at the decoder. We believe that additional filtering during demodulation will help solve this problem.</p>
+              <p>In addition, we would like to fix the issue of power spikes causing improper detection at the decoder. We believe that additional filtering during demodulation will help solve this problem. To improve robustness, we would like to improve our CRC code to fix bit-errors rather than simply detecting them.</p>
 
               <p>Finally, we would work to get transmission working with a mobile phone. Because the encoder is a web application, it can be run on any device with a web browser. We had some success with using an iPhone as the transmitter, but the iPhone sound card seemed to try to "smooth" the transitions between the frequencies, which made the decoding much harder. It also introduced issues with volume control that we did not have time to address; for example, when playing the start chord, the chord would start at full volume and then quickly become quieter without us adjusting the volume.</p>
 
