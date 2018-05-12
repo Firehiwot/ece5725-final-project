@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Sonic Communication - Angus Gibbs and Joao Pedro Carvao - ECE 5725 - Cornell University</title>
     <link rel="stylesheet" href="css/bulma.min.css">
+    <link rel="stylesheet" href="css/page.css">
   </head>
   <body>
     <nav class="navbar is-link is-fixed-top">
@@ -37,49 +38,49 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="main-content">
       <div class="container">
         <div class="columns">
-          <div class="column is-one-third">
-            <aside class="menu">
+          <div class="column is-one-third" id="menu-container">
+            <aside class="menu" id="menu">
               <ul class="menu-list">
                 <li>
-                  <a href="#intro" class="is-active">Introduction</a>
+                  <a href="#intro" id="link_intro" class="is-active">Introduction</a>
                 </li>
                 <li>
-                  <a href="#design">Design &amp; Testing</a>
+                  <a href="#design" id="link_design">Design &amp; Testing</a>
                   <ul>
-                    <li><a href="#design_hardware">Hardware Design</a></li>
-                    <li><a href="#design_software">Software Design</a></li>
+                    <li><a href="#design_hardware" id="link_design_hardware">Hardware Design</a></li>
+                    <li><a href="#design_software" id="link_design_software">Software Design</a></li>
                   </ul>
                 </li>
                 <li>
-                  <a href="#results">Results</a>
+                  <a href="#results" id="link_results">Results</a>
                 </li>
                 <li>
-                  <a href="#conclusions">Conclusions</a>
+                  <a href="#conclusions" id="link_conclusions">Conclusions</a>
                 </li>
                 <li>
-                  <a href="#future_work">Future Work</a>
+                  <a href="#future_work" id="link_future_work">Future Work</a>
                 </li>
                 <li>
-                  <a href="#work_distribution">Work Distribution</a>
+                  <a href="#work_distribution" id="link_work_distribution">Work Distribution</a>
                 </li>
                 <li>
-                  <a href="#project_parts">Project Parts</a>
+                  <a href="#project_parts" id="link_project_parts">Project Parts</a>
                 </li>
                 <li>
-                  <a href="#references">References</a>
+                  <a href="#references" id="link_references">References</a>
                 </li>
               </ul>
             </aside>
           </div>
           <div class="column is-two-thirds">
             <div class="content">
-              <h1 id="intro">Introduction</h1>
+              <h1 id="intro" class="checkpoint">Introduction</h1>
               <p>In this project, we created a one-way communication system using a Raspberry Pi, a microphone, and a speaker. The speaker, acting as the transmitter in the system, was able to communicate arbitrary, fixed-length bit string frames to the Raspberry Pi by playing a series of tones, which the microphone recorded and the Pi processed to recover the bits. Bits were encoded using multiple frequency shift keying (MFSK), which assigns different tone frequencies to different combinations of bits, allowing for multiple bits to be sent in each transmitted symbol. By implementing a cyclic redundancy check, we were able to create a system that was fairly robust to noise and echoes; given the constraints of the frequency band that we were working with (about 350 Hz to 750 Hz), we did not expect to correctly receive every transmission, but we were able to at least detect whether a transmission was received without error.</p>
 
-              <h1 id="design">Design &amp; Testing</h1>
+              <h1 id="design" class="checkpoint">Design &amp; Testing</h1>
               <p>Our system uses software on the Raspberry Pi to demodulate received signals to extract the original information transmitted by an laptop transmitter. Demodulation is done primarily in software, with analog-to-digital conversion done in hardware. On the transmitter size, an laptop runs an application to modulate a series of bits into an MFSK signal. Figure 1 shows an overview of our system.</p>
 
               <figure>
@@ -87,7 +88,7 @@
                 <figcaption>Figure 1: A high level overview of our system.</figcaption>
               </figure>
 
-              <h2 id="design_hardware">Hardware Design</h2>
+              <h2 id="design_hardware" class="checkpoint">Hardware Design</h2>
               <p>Our project consisted of two hardware devices: a Raspberry Pi controlled receiver and a laptop controlled transmitter. Our Pi receiver consisted of a Raspberry Pi with the following peripherals: a PiTFT touchscreen with GPIO buttons, an MCP3008 10 bit analog-to-digital converter (ADC), and a MAX4486 electret microphone with adjustable gain. We used no peripherals for the laptop transmitter, opting for the built-in speakers.</p>
 
               <p>Table 1 shows the peripheral inputs to our system. The output of the MAX4486 is connected to channel 0 of the MCP3008. This communicates the received analog signal for analog-to-digital conversion.</p>
@@ -130,7 +131,7 @@
 
               <p>When debugging the microphone circuit, the oscilloscope was our tool of choice. The microphone had a tunable gain, adjustable using a potentiometer, and we determined the maximum gain point by playing a tone into the microphone and adjusting the pot until the amplitude on the oscilloscope was maximized. When we were trying to detect ultrasonic frequencies, we were able to see on the oscilloscope that the amplitude was too low for our ADC to give us accurate resolution, allowing us to move on with the project without sinking additional hours into determining why our fast Fourier transform was not detecting any peaks. We also used to oscilloscope to verify the correctness of the encoder output, by using the measure function to determine the received frequency of the sinusoid.</p>
 
-              <h2 id="design_software">Software Design</h2>
+              <h2 id="design_software" class="checkpoint">Software Design</h2>
               <p>We needed a way to encode bits into a sound such that it would be feasible for the Pi to recover the original bits from the received sound. Each bit, or potentially chunk of bits, is assigned a time slot in which to be transmitted. A naive approach to encode the bits in each time slot might be to play a loud sound for a one, and send silence for a zero. This approach is called amplitude modulation, and for our purposes, it would not work: the microphone received a much quieter copy of the signal, and any loud sound in the lab during a “silence” period would result in a decoding error. We knew that some sort of frequency modulation would be required; while the microphone might mangle the received signal amplitude, because it’s well modeled as an linear time-invariant (LTI) system, it would not shift the transmitted frequencies.</p>
 
               <p>Frequency shift keying (FSK) is one of the simplest frequency modulation schemes, and it was a perfect match for our setup: we didn’t need something as complicated as OFDM (orthogonal frequency division multiple access), since we were not worried about channel sharing, FSK is highly noise-tolerant (needed because of the quality of our microphone), and FSK can be decoded with reasonable computational complexity (needed because this is a real-time application). FSK encodes bits by sending a sinusoid in each time slot, and varying the frequency of the sinusoid depending on the data to be sent. For standard FSK, there are only two frequencies, one for sending a “1” bit and one for sending a “0.” MFSK (multiple FSK) sends more than two frequencies so as to encode more than one bit in a single tone; we settled on using 2FSK (four frequencies in total), allowing us to send two bits with each tone. We tested 4FSK, but the narrowness of our frequency band and the noisiness of our channel prevented us from distinguishing neighboring tones.</p>
@@ -255,12 +256,12 @@
                 <figcaption>Figure 5: Screenshots of the demo application in different states. From left to right, then top to bottom: the initial state, before a transmission is detected; the initial state, with the mic muted; the recording state; the successful state, with the mic unmuted; the successful state, with the mic muted; the error state, with the mic unmuted; and the error state, with the mic muted.</figcaption>
               </figure>
 
-              <h1 id="results">Results</h1>
+              <h1 id="results" class="checkpoint">Results</h1>
               <p>We originally wanted to work in ultrasonic frequency bands but due to small gain in frequencies above roughly 7kHz, the MAX4486’s amplifier gain was lower than necessary in order of signals to be recorded properly; in these low gain regions, our decoder would decode an empty bitstream. However, in the frequency bands specified in the Design and Testing section, our decoder was able to perfectly decode information about 70% of the time when transmitted at an appropriate distance. The distance in which bits could be decoded properly varies with the power (volume) at which the transmitter can send signals. For a Lenovo IdeaPad, this distance was a few centimeters.</p>
 
               <p>Unfortunately, we were not able to transmit using an iPhone as planned as the volume at which the iPhone played sound was too low for our receiver to decode, leading to high bit error rates.</p>
 
-              <h1 id="conclusions">Conclusion</h1>
+              <h1 id="conclusions" class="checkpoint">Conclusion</h1>
               <p>We were able to design and implement our communication system with reasonable success. Most packets were decoded properly, due to the nature of failure modes, packets with a single bit error are thrown out entirely, since bit errors are primarily caused by improper triggering by unanticipated local spikes in signal power. Failure to the detect the start of a signal effectively means all of your received data is unreliable, which is why we chose to throw out these packets. An example of an improper trigger is shown in Figure 6.</p>
 
               <figure>
@@ -270,19 +271,19 @@
 
               <p>While developing this project. We primarily learned about the difficulty and importance of system synchronization and its necessity in real-time systems. Synchronization was heavily dependent on specific timing constraints, which made it susceptible to critical errors which can reasonably result in system failure. We were able to time the system very precisely with the PreemptRT kernel patch, but this was unfortunately not enough to defend against the unpredictable power spikes.</p>
 
-              <h1 id="future_work">Future Work</h1>
+              <h1 id="future_work" class="checkpoint">Future Work</h1>
               <p>As the original goal of this project was to communicate using ultrasonic frequencies, future work on this project would primarily be focused on updating our project to handle higher frequency bands. This can be achieved by upgrading hardware components used (primarily purchasing a more sensitive microphone and possibly constructing a preamplifier circuit) and with small modifications to our software at the encoder and decoder.</p>
 
               <p>In addition, we would like to fix the issue of power spikes causing improper detection at the decoder. We believe that additional filtering during demodulation will help solve this problem.</p>
 
               <p>Finally, we would work to get transmission working with a mobile phone. Because the encoder is a web application, it can be run on any device with a web browser. We had some success with using an iPhone as the transmitter, but the iPhone sound card seemed to try to "smooth" the transitions between the frequencies, which made the decoding much harder. It also introduced issues with volume control that we did not have time to address; for example, when playing the start chord, the chord would start at full volume and then quickly become quieter without us adjusting the volume.</p>
 
-              <h1 id="work_distribution">Work Distribution</h1>
+              <h1 id="work_distribution" class="checkpoint">Work Distribution</h1>
               <p>Joao Pedro: Hardware and software design and implementation. Report writing: overview, hardware design, decoding, synchronization, results, conclusion.</p>
 
               <p>Angus: Hardware and software design and implementation. Report writing: software design, testing, synchronization.</p>
 
-              <h1 id="project_parts">Project Parts</h1>
+              <h1 id="project_parts" class="checkpoint">Project Parts</h1>
               <table>
                 <thead>
                   <tr>
@@ -310,7 +311,7 @@
                 </tbody>
               </table>
 
-              <h1 id="references">References</h1>
+              <h1 id="references" class="checkpoint">References</h1>
               <ul>
                 <li><a href="https://www.allaboutcircuits.com/technical-articles/fsk-explained-with-python/">https://www.allaboutcircuits.com/technical-articles/fsk-explained-with-python/</a></li>
                 <li><a href="https://www.scipy.org/scipylib/index.html">https://www.scipy.org/scipylib/index.html</a></li>
@@ -323,5 +324,7 @@
         </div>
       </div>
     </section>
+
+    <script src="js/page.js"></script>
   </body>
 </html>
