@@ -1,21 +1,40 @@
+#
+# mcp3008.py
+# Angus Gibbs (aag233) and Joao Pedro Carvao (jc2697)
+#
+# Library to read values from the 10-bit MCP3008 ADC.
+#
+
 import RPi.GPIO as GPIO
 
+# Define the clock pins
 CLK_PIN = 12
 MISO_PIN = 16
 MOSI_PIN = 20
 CS_PIN = 21
 
+# Set up GPIO pins for input and output
 GPIO.setmode(GPIO.BCM)
-
 GPIO.setup(CLK_PIN, GPIO.OUT)
 GPIO.setup(MISO_PIN, GPIO.IN)
 GPIO.setup(MOSI_PIN, GPIO.OUT)
 GPIO.setup(CS_PIN, GPIO.OUT)
 
 def read_adc(adc_channel):
+    """
+    Read the value from the given ADC channel.
+
+    Arguments:
+        adc_channel (int): The ADC channel
+
+    Returns:
+        int: The ADC output
+    """
+    # Enforce that the ADC channel be between 0 and 7, inclusive
     if (adc_channel > 7 or adc_channel < 0):
         return -1
 
+    # Bring the chip select high
     GPIO.output(CS_PIN, True)
 
     # Start clock low and bring chip select low

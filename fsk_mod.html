@@ -1,3 +1,8 @@
+<!--
+  Modulator web app. Generates signals that can be played through the device
+  speakers and demodulated by the Raspberry Pi.
+-->
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -16,6 +21,9 @@
     </p>
 
     <script>
+      /**
+       * Play the tone on button press.
+       */
       document.getElementById("play-sound").addEventListener("click", function(e) {
         e.preventDefault();
 
@@ -24,6 +32,9 @@
         modulate(bits);
       }, false);
 
+      /**
+       * Allow random 24-bit strings to be generated.
+       */
       document.getElementById("generate-random").addEventListener("click", function(e) {
         e.preventDefault();
 
