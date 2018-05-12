@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
   <head>
     <meta charset="utf-8">
     <title>Sonic Communication - Angus Gibbs and Joao Pedro Carvao - ECE 5725 - Cornell University</title>
@@ -27,7 +27,6 @@
     </nav>
 
     <section class="hero is-light is-medium is-bold">
-      <div class="hero-body">
       <div class="container">
         <h1 class="title">Sonic Communication</h1>
         <h2 class="subtitle">The goal of this project was to design a communication system using sound rather than electromagnetic propagation. Our design shows an intuitive representation of how information can be communicated wirelessly and uses the PreemptRT kernel patch.</h2>
@@ -217,7 +216,7 @@
               <p>Figure 4 shows a finite state machine diagram for the demo. The application was listening for the start of a transmission in every state except for “recording.” In each of those three states, button 17 on the PiTFT could be pressed to mute the microphone, which would stop the application from listening for a start signal until the microphone was unmuted.</p>
 
               <figure>
-                <img src="img/demo.png" alt="Demo finite state machine" width="400" height="auto">
+                <img src="img/demo.png" alt="Demo finite state machine" width="400" height="334">
                 <figcaption>Figure 4: Finite state machine diagram for demo application.</figcaption>
               </figure>
 
@@ -252,7 +251,7 @@
                 <figcaption>Figure 5: Screenshots of the demo application in different states. From left to right, then top to bottom: the initial state, before a transmission is detected; the initial state, with the mic muted; the recording state; the successful state, with the mic unmuted; the successful state, with the mic muted; the error state, with the mic unmuted; and the error state, with the mic muted.</figcaption>
               </figure>
 
-              <h1 id="results">Results</h2>
+              <h1 id="results">Results</h1>
               <p>We originally wanted to work in ultrasonic frequency bands but due to small gain in frequencies above roughly 7kHz, the MAX4486’s amplifier gain was lower than necessary in order of signals to be recorded properly; in these low gain regions, our decoder would decode an empty bitstream. However, in the frequency bands specified in the Design and Testing section, our decoder was able to perfectly decode information about 70% of the time when transmitted at an appropriate distance. The distance in which bits could be decoded properly varies with the power (volume) at which the transmitter can send signals. For a Lenovo IdeaPad, this distance was a few centimeters.</p>
 
               <p>Unfortunately, we were not able to transmit using an iPhone as planned as the volume at which the iPhone played sound was too low for our receiver to decode, leading to high bit error rates.</p>
